@@ -131,7 +131,8 @@ def calories():
                 email = session.get('email')
                 food = request.form.get('food')
                 cals = food.split(" ")
-                cals = int(cals[1][1:(len(cals[1]) - 1)])
+                cals = int(cals[-1][1:(len(cals[1]) - 1)])
+                print(cals)
                 burn = request.form.get('burnout')
 
                 temp = mongo.db.calories.find_one({'email': email}, {
