@@ -50,25 +50,26 @@ def login():
     Input: Email, Password, Login Type
     Output: Account Authentication and redirecting to Dashboard
     """
-    if not session.get('email'):
-        form = LoginForm()
-        if form.validate_on_submit():
-            temp = mongo.db.user.find_one({'email': form.email.data}, {
-                'email', 'pwd'})
-            if temp is not None and temp['email'] == form.email.data and (
-                bcrypt.checkpw(
-                    form.password.data.encode("utf-8"),
-                    temp['pwd'])):
-                flash('You have been logged in!', 'success')
-                session['email'] = temp['email']
-                #session['login_type'] = form.type.data
-                return redirect(url_for('dashboard'))
-            else:
-                flash(
-                    'Login Unsuccessful. Please check username and password',
-                    'danger')
-    else:
-        return redirect(url_for('home'))
+    
+    form = LoginForm()
+    if form.validate_on_submit():
+        temp = mongo.db.user.find_one({'email': form.email.data}, {
+            'email', 'pwd'})
+        if temp is not None and temp['email'] == form.email.data and (
+            bcrypt.checkpw(
+                form.password.data.encode("utf-8"),
+                temp['pwd'])):
+            flash('You have been logged in!', 'success')
+            session['email'] = temp['email']
+            #session['login_type'] = form.type.data
+            return redirect(url_for('dashboard'))
+        else:
+            session.clear()
+            flash(
+                'Login Unsuccessful. Please check username and password',
+                'danger')
+            return redirect(url_for('login'))
+
     return render_template(
         'login.html',
         title='Login',
