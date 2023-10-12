@@ -58,7 +58,7 @@ def login():
             if temp is not None and temp['email'] == form.email.data and (
                 bcrypt.checkpw(
                     form.password.data.encode("utf-8"),
-                    temp['pwd']) or temp['temp'] == form.password.data):
+                    temp['pwd'])):
                 flash('You have been logged in!', 'success')
                 session['email'] = temp['email']
                 #session['login_type'] = form.type.data
