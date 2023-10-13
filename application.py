@@ -52,25 +52,26 @@ def login():
     Input: Email, Password, Login Type
     Output: Account Authentication and redirecting to Dashboard
     """
-    if not session.get('email'):
-        form = LoginForm()
-        if form.validate_on_submit():
-            temp = a.mongo.db.user.find_one({'email': form.email.data}, {
-                'email', 'pwd'})
-            if temp is not None and temp['email'] == form.email.data and (
-                bcrypt.checkpw(
-                    form.password.data.encode("utf-8"),
-                    temp['pwd']) or temp['temp'] == form.password.data):
-                flash('You have been logged in!', 'success')
-                session['email'] = temp['email']
-                #session['login_type'] = form.type.data
-                return redirect(url_for('dashboard'))
-            else:
-                flash(
-                    'Login Unsuccessful. Please check username and password',
-                    'danger')
-    else:
-        return redirect(url_for('home'))
+    
+    form = LoginForm()
+    if form.validate_on_submit():
+        temp = mongo.db.user.find_one({'email': form.email.data}, {
+            'email', 'pwd'})
+        if temp is not None and temp['email'] == form.email.data and (
+            bcrypt.checkpw(
+                form.password.data.encode("utf-8"),
+                temp['pwd'])):
+            flash('You have been logged in!', 'success')
+            session['email'] = temp['email']
+            #session['login_type'] = form.type.data
+            return redirect(url_for('dashboard'))
+        else:
+            session.clear()
+            flash(
+                'Login Unsuccessful. Please check username and password',
+                'danger')
+            return redirect(url_for('login'))
+
     return render_template(
         'login.html',
         title='Login',
@@ -133,7 +134,8 @@ def calories():
                 email = session.get('email')
                 food = request.form.get('food')
                 cals = food.split(" ")
-                cals = int(cals[1][1:(len(cals[1]) - 1)])
+                cals = int(cals[-1][1:(len(cals[1]) - 1)])
+                print(cals)
                 burn = request.form.get('burnout')
 
                 temp = a.mongo.db.calories.find_one({'email': email}, {
@@ -651,16 +653,12 @@ def forgot():
 
             # Send the password reset email
             reset_link = url_for('reset_password', token=code, _external=True)
-            print(reset_link)
             email_content = render_template('password_reset.html', reset_link=reset_link)
-            # with open('templates/password_reset.html', 'r') as file:
-            #     email_content = file.read()
-            print(email_content)
-            print("Am I doing it right?")
+
             # Create the email message
             msg = Message('Password Reset Request', sender='burnoutapp74@gmail.com', recipients=[email])
             msg.html = email_content
-            print("Am I doing it right, again?")
+
             # Send the email
             try:
                 a.mail.send(msg)
