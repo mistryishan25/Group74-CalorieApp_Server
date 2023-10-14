@@ -28,6 +28,7 @@ from forms import HistoryForm, RegistrationForm, LoginForm, CalorieForm, UserPro
 a = apps.App()
 mongo = a.mongo
 
+
 @a.app.route("/")
 @a.app.route("/home")
 def home():
@@ -52,7 +53,7 @@ def login():
     Input: Email, Password, Login Type
     Output: Account Authentication and redirecting to Dashboard
     """
-    
+
     form = LoginForm()
     if form.validate_on_submit():
         temp = mongo.db.user.find_one({'email': form.email.data}, {
@@ -63,7 +64,7 @@ def login():
                 temp['pwd'])):
             flash('You have been logged in!', 'success')
             session['email'] = temp['email']
-            #session['login_type'] = form.type.data
+            # session['login_type'] = form.type.data
             return redirect(url_for('dashboard'))
         else:
             session.clear()
@@ -273,7 +274,7 @@ def friends():
                            pendingReceivers=pendingReceivers, pendingApproves=pendingApproves, myFriends=myFriends, myFriendsList=myFriendsList)
 
 
-@a.app.route("/send_email", methods=['GET','POST'])
+@a.app.route("/send_email", methods=['GET', 'POST'])
 def send_email():
     # ############################
     # send_email() function shares Calorie History with friend's email
@@ -282,37 +283,39 @@ def send_email():
     # Output: Calorie History Received on specified email
     # ##########################
     email = session.get('email')
-    data = list(mongo.db.calories.find({'email': email}, {'date','email','calories','burnout'}))
-    table = [['Date','Email ID','Calories','Burnout']]
+    data = list(mongo.db.calories.find({'email': email}, {
+                'date', 'email', 'calories', 'burnout'}))
+    table = [['Date', 'Email ID', 'Calories', 'Burnout']]
     for a in data:
-        tmp = [a['date'],a['email'],a['calories'],a['burnout']] 
-        table.append(tmp) 
-    
+        tmp = [a['date'], a['email'], a['calories'], a['burnout']]
+        table.append(tmp)
+
     friend_email = str(request.form.get('share')).strip()
     friend_email = str(friend_email).split(',')
-    server = smtplib.SMTP_SSL("smtp.gmail.com",465)
-    #Storing sender's email address and password
-    sender_email = "calorie.app.server@gmail.com"
-    sender_password = "Temp@1234"
-    
-    #Logging in with sender details
-    server.login(sender_email,sender_password)
-    message = 'Subject: Calorie History\n\n Your Friend wants to share their calorie history with you!\n {}'.format(tabulate(table))
+    server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+    # Storing sender's email address and password
+    sender_email = "burnoutapp74@gmail.com"
+    sender_password = "fhjt vqpq slqr wdtr"
+
+    # Logging in with sender details
+    server.login(sender_email, sender_password)
+    message = 'Subject: Calorie History\n\n Your Friend wants to share their calorie history with you!\n {}'.format(
+        tabulate(table))
     for e in friend_email:
         print(e)
-        server.sendmail(sender_email,e,message)
-        
+        server.sendmail(sender_email, e, message)
+
     server.quit()
-    
+
     myFriends = list(mongo.db.friends.find(
         {'sender': email, 'accept': True}, {'sender', 'receiver', 'accept'}))
     myFriendsList = list()
-    
+
     for f in myFriends:
         myFriendsList.append(f['receiver'])
 
     allUsers = list(mongo.db.user.find({}, {'name', 'email'}))
-    
+
     pendingRequests = list(mongo.db.friends.find(
         {'sender': email, 'accept': False}, {'sender', 'receiver', 'accept'}))
     pendingReceivers = list()
@@ -324,10 +327,9 @@ def send_email():
         {'receiver': email, 'accept': False}, {'sender', 'receiver', 'accept'}))
     for p in pendingApprovals:
         pendingApproves.append(p['sender'])
-        
+
     return render_template('friends.html', allUsers=allUsers, pendingRequests=pendingRequests, active=email,
                            pendingReceivers=pendingReceivers, pendingApproves=pendingApproves, myFriends=myFriends, myFriendsList=myFriendsList)
-
 
 
 @a.app.route("/ajaxsendrequest", methods=['POST'])
@@ -560,6 +562,7 @@ def gym():
         return redirect(url_for('dashboard'))
     return render_template('gym.html', title='Gym', form=form)
 
+
 @a.app.route("/walk", methods=['GET', 'POST'])
 def walk():
     # ############################
@@ -585,6 +588,7 @@ def walk():
         return redirect(url_for('dashboard'))
     return render_template('walk.html', title='Walk', form=form)
 
+
 @a.app.route("/dance", methods=['GET', 'POST'])
 def dance():
     # ############################
@@ -609,6 +613,7 @@ def dance():
     else:
         return redirect(url_for('dashboard'))
     return render_template('dance.html', title='Dance', form=form)
+
 
 @a.app.route("/hrx", methods=['GET', 'POST'])
 def hrx():
@@ -642,21 +647,24 @@ def forgot():
     message = None
     form = ForgotForm()
     if form.validate_on_submit():
-        email=form.email.data.lower()
+        email = form.email.data.lower()
         temp = mongo.db.user.find_one({'email': email}, {'email'})
-        if temp: 
+        if temp:
             # Generate a password reset code
             code = str(uuid.uuid4())
-            
+
             # Store the code in the database (you may need to modify your schema)
-            mongo.db.user.update_one({'email': email}, {'$set': {'password_reset_code': code}})
+            mongo.db.user.update_one(
+                {'email': email}, {'$set': {'password_reset_code': code}})
 
             # Send the password reset email
             reset_link = url_for('reset_password', token=code, _external=True)
-            email_content = render_template('password_reset.html', reset_link=reset_link)
+            email_content = render_template(
+                'password_reset.html', reset_link=reset_link)
 
             # Create the email message
-            msg = Message('Password Reset Request', sender='burnoutapp74@gmail.com', recipients=[email])
+            msg = Message('Password Reset Request',
+                          sender='burnoutapp74@gmail.com', recipients=[email])
             msg.html = email_content
 
             # Send the email
@@ -664,11 +672,11 @@ def forgot():
                 a.mail.send(msg)
             except smtplib.SMTPAuthenticationError as e:
                 print(f"SMTP Authentication Error: {str(e)}")
-            
+
             message = "You will receive an email with instructions to reset your password if your email is registered with us."
         else:
             error = "Email not found in our database."
-    
+
     return render_template('forgot.html', form=form, error=error, message=message)
 
 
@@ -676,29 +684,33 @@ def forgot():
 def reset_password(token):
     error = None
     form = ResetPasswordForm()  # Create a form for resetting the password
-    
+
     # Verify the token and get the associated email address from the database
-    reset_data = mongo.db.user.find_one({'password_reset_code': token}, {'email'})
+    reset_data = mongo.db.user.find_one(
+        {'password_reset_code': token}, {'email'})
     if not reset_data:
         flash('Invalid or expired token. Please request a new password reset.', 'danger')
         return redirect(url_for('forgot'))
-    
+
     email = reset_data['email']
-    
+
     if form.validate_on_submit():
         # Reset the user's password and update the database
         new_password = form.new_password.data
-        hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
-        
+        hashed_password = bcrypt.hashpw(
+            new_password.encode('utf-8'), bcrypt.gensalt())
+
         # Update the user's password in the database
-        mongo.db.user.update_one({'email': email}, {'$set': {'pwd': hashed_password}})
-        
+        mongo.db.user.update_one(
+            {'email': email}, {'$set': {'pwd': hashed_password}})
+
         # Remove the password reset code from the database (optional)
-        mongo.db.user.update_one({'email': email}, {'$unset': {'password_reset_code': 1}})
-        
+        mongo.db.user.update_one(
+            {'email': email}, {'$unset': {'password_reset_code': 1}})
+
         flash('Password reset successful. You can now log in with your new password.', 'success')
         return redirect(url_for('login'))  # Redirect to the login page
-    
+
     return render_template('reset_password.html', form=form, token=token, error=error)
 
 # @a.app.route("/ajaxdashboard", methods=['POST'])
