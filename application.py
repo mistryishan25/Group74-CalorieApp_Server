@@ -2,32 +2,34 @@ from datetime import datetime
 
 import bcrypt
 import smtplib
+import uuid
+import apps
 
 # from apps import App
 from flask import json
 # from utilities import Utilities
 from flask import render_template, session, url_for, flash, redirect, request, Flask
-from flask_mail import Mail
+from flask_mail import Mail, Message
 from flask_pymongo import PyMongo
 from tabulate import tabulate
-from forms import HistoryForm, RegistrationForm, LoginForm, CalorieForm, UserProfileForm, EnrollForm
+from forms import HistoryForm, RegistrationForm, LoginForm, CalorieForm, UserProfileForm, EnrollForm, ForgotForm, ResetPasswordForm
+# app = Flask(__name__)
+# app.secret_key = 'secret'
+# app.config['MONGO_URI'] = 'mongodb://127.0.0.1:27017/test'
+# app.config['MONGO_CONNECT'] = False
 
-app = Flask(__name__)
-app.secret_key = 'secret'
-app.config['MONGO_URI'] = 'mongodb://127.0.0.1:27017/test'
-app.config['MONGO_CONNECT'] = False
-mongo = PyMongo(app)
+# app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+# app.config['MAIL_PORT'] = 465
+# app.config['MAIL_USE_SSL'] = True
+# app.config['MAIL_USERNAME'] = "burnoutapp74@gmail.com"
+# app.config['MAIL_PASSWORD'] = "fhjt vqpq slqr wdtr"
+# mail = Mail(app)
 
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 465
-app.config['MAIL_USE_SSL'] = True
-app.config['MAIL_USERNAME'] = "bogusdummy123@gmail.com"
-app.config['MAIL_PASSWORD'] = "helloworld123!"
-mail = Mail(app)
+a = apps.App()
+mongo = a.mongo
 
-
-@app.route("/")
-@app.route("/home")
+@a.app.route("/")
+@a.app.route("/home")
 def home():
     """
     home() function displays the homepage of our website.
@@ -41,7 +43,7 @@ def home():
         return redirect(url_for('login'))
 
 
-@app.route("/login", methods=['GET', 'POST'])
+@a.app.route("/login", methods=['GET', 'POST'])
 def login():
     """"
     login() function displays the Login form (login.html) template
@@ -76,7 +78,7 @@ def login():
         form=form)
 
 
-@app.route("/logout", methods=['GET', 'POST'])
+@a.app.route("/logout", methods=['GET', 'POST'])
 def logout():
     """
     logout() function just clears out the session and returns success
@@ -87,7 +89,7 @@ def logout():
     return "success"
 
 
-@app.route("/register", methods=['GET', 'POST'])
+@a.app.route("/register", methods=['GET', 'POST'])
 def register():
     """
     register() function displays the Registration portal (register.html) template
@@ -112,7 +114,7 @@ def register():
     return render_template('register.html', title='Register', form=form)
 
 
-@app.route("/calories", methods=['GET', 'POST'])
+@a.app.route("/calories", methods=['GET', 'POST'])
 def calories():
     """
     calorie() function displays the Calorieform (calories.html) template
@@ -151,7 +153,7 @@ def calories():
     return render_template('calories.html', form=form, time=now)
 
 
-@app.route("/user_profile", methods=['GET', 'POST'])
+@a.app.route("/user_profile", methods=['GET', 'POST'])
 def user_profile():
     """
     user_profile() function displays the UserProfileForm (user_profile.html) template
@@ -191,7 +193,7 @@ def user_profile():
     return render_template('user_profile.html', status=True, form=form)
 
 
-@app.route("/history", methods=['GET'])
+@a.app.route("/history", methods=['GET'])
 def history():
     # ############################
     # history() function displays the Historyform (history.html) template
@@ -206,7 +208,7 @@ def history():
     return render_template('history.html', form=form)
 
 
-@app.route("/ajaxhistory", methods=['POST'])
+@a.app.route("/ajaxhistory", methods=['POST'])
 def ajaxhistory():
     # ############################
     # ajaxhistory() is a POST function displays the fetches the various information from database
@@ -230,7 +232,7 @@ def ajaxhistory():
                     'ContentType': 'application/json'}
 
 
-@app.route("/friends", methods=['GET'])
+@a.app.route("/friends", methods=['GET'])
 def friends():
     # ############################
     # friends() function displays the list of friends corrsponding to given email
@@ -271,7 +273,7 @@ def friends():
                            pendingReceivers=pendingReceivers, pendingApproves=pendingApproves, myFriends=myFriends, myFriendsList=myFriendsList)
 
 
-@app.route("/send_email", methods=['GET','POST'])
+@a.app.route("/send_email", methods=['GET','POST'])
 def send_email():
     # ############################
     # send_email() function shares Calorie History with friend's email
@@ -328,7 +330,7 @@ def send_email():
 
 
 
-@app.route("/ajaxsendrequest", methods=['POST'])
+@a.app.route("/ajaxsendrequest", methods=['POST'])
 def ajaxsendrequest():
     # ############################
     # ajaxsendrequest() is a function that updates friend request information into database
@@ -349,7 +351,7 @@ def ajaxsendrequest():
         'ContentType:': 'application/json'}
 
 
-@app.route("/ajaxcancelrequest", methods=['POST'])
+@a.app.route("/ajaxcancelrequest", methods=['POST'])
 def ajaxcancelrequest():
     # ############################
     # ajaxcancelrequest() is a function that updates friend request information into database
@@ -370,7 +372,7 @@ def ajaxcancelrequest():
         'ContentType:': 'application/json'}
 
 
-@app.route("/ajaxapproverequest", methods=['POST'])
+@a.app.route("/ajaxapproverequest", methods=['POST'])
 def ajaxapproverequest():
     # ############################
     # ajaxapproverequest() is a function that updates friend request information into database
@@ -394,7 +396,7 @@ def ajaxapproverequest():
         'ContentType:': 'application/json'}
 
 
-@app.route("/dashboard", methods=['GET', 'POST'])
+@a.app.route("/dashboard", methods=['GET', 'POST'])
 def dashboard():
     # ############################
     # dashboard() function displays the dashboard.html template
@@ -405,7 +407,7 @@ def dashboard():
     return render_template('dashboard.html', title='Dashboard')
 
 
-@app.route("/yoga", methods=['GET', 'POST'])
+@a.app.route("/yoga", methods=['GET', 'POST'])
 def yoga():
     # ############################
     # yoga() function displays the yoga.html template
@@ -431,7 +433,7 @@ def yoga():
     return render_template('yoga.html', title='Yoga', form=form)
 
 
-@app.route("/swim", methods=['GET', 'POST'])
+@a.app.route("/swim", methods=['GET', 'POST'])
 def swim():
     # ############################
     # swim() function displays the swim.html template
@@ -457,7 +459,7 @@ def swim():
     return render_template('swim.html', title='Swim', form=form)
 
 
-@app.route("/abbs", methods=['GET', 'POST'])
+@a.app.route("/abbs", methods=['GET', 'POST'])
 def abbs():
     # ############################
     # abbs() function displays the abbs.html template
@@ -482,7 +484,7 @@ def abbs():
     return render_template('abbs.html', title='Abbs Smash!', form=form)
 
 
-@app.route("/belly", methods=['GET', 'POST'])
+@a.app.route("/belly", methods=['GET', 'POST'])
 def belly():
     # ############################
     # belly() function displays the belly.html template
@@ -508,7 +510,7 @@ def belly():
     return render_template('belly.html', title='Belly Burner', form=form)
 
 
-@app.route("/core", methods=['GET', 'POST'])
+@a.app.route("/core", methods=['GET', 'POST'])
 def core():
     # ############################
     # core() function displays the belly.html template
@@ -533,7 +535,7 @@ def core():
     return render_template('core.html', title='Core Conditioning', form=form)
 
 
-@app.route("/gym", methods=['GET', 'POST'])
+@a.app.route("/gym", methods=['GET', 'POST'])
 def gym():
     # ############################
     # gym() function displays the gym.html template
@@ -558,7 +560,7 @@ def gym():
         return redirect(url_for('dashboard'))
     return render_template('gym.html', title='Gym', form=form)
 
-@app.route("/walk", methods=['GET', 'POST'])
+@a.app.route("/walk", methods=['GET', 'POST'])
 def walk():
     # ############################
     # walk() function displays the walk.html template
@@ -583,7 +585,7 @@ def walk():
         return redirect(url_for('dashboard'))
     return render_template('walk.html', title='Walk', form=form)
 
-@app.route("/dance", methods=['GET', 'POST'])
+@a.app.route("/dance", methods=['GET', 'POST'])
 def dance():
     # ############################
     # dance() function displays the dance.html template
@@ -608,7 +610,7 @@ def dance():
         return redirect(url_for('dashboard'))
     return render_template('dance.html', title='Dance', form=form)
 
-@app.route("/hrx", methods=['GET', 'POST'])
+@a.app.route("/hrx", methods=['GET', 'POST'])
 def hrx():
     # ############################
     # hrx() function displays the hrx.html template
@@ -633,7 +635,73 @@ def hrx():
         return redirect(url_for('dashboard'))
     return render_template('hrx.html', title='HRX', form=form)
 
-# @app.route("/ajaxdashboard", methods=['POST'])
+
+@a.app.route("/forgot", methods=['GET', 'POST'])
+def forgot():
+    error = None
+    message = None
+    form = ForgotForm()
+    if form.validate_on_submit():
+        email=form.email.data.lower()
+        temp = mongo.db.user.find_one({'email': email}, {'email'})
+        if temp: 
+            # Generate a password reset code
+            code = str(uuid.uuid4())
+            
+            # Store the code in the database (you may need to modify your schema)
+            mongo.db.user.update_one({'email': email}, {'$set': {'password_reset_code': code}})
+
+            # Send the password reset email
+            reset_link = url_for('reset_password', token=code, _external=True)
+            email_content = render_template('password_reset.html', reset_link=reset_link)
+
+            # Create the email message
+            msg = Message('Password Reset Request', sender='burnoutapp74@gmail.com', recipients=[email])
+            msg.html = email_content
+
+            # Send the email
+            try:
+                a.mail.send(msg)
+            except smtplib.SMTPAuthenticationError as e:
+                print(f"SMTP Authentication Error: {str(e)}")
+            
+            message = "You will receive an email with instructions to reset your password if your email is registered with us."
+        else:
+            error = "Email not found in our database."
+    
+    return render_template('forgot.html', form=form, error=error, message=message)
+
+
+@a.app.route("/reset_password/<token>", methods=['GET', 'POST'])
+def reset_password(token):
+    error = None
+    form = ResetPasswordForm()  # Create a form for resetting the password
+    
+    # Verify the token and get the associated email address from the database
+    reset_data = mongo.db.user.find_one({'password_reset_code': token}, {'email'})
+    if not reset_data:
+        flash('Invalid or expired token. Please request a new password reset.', 'danger')
+        return redirect(url_for('forgot'))
+    
+    email = reset_data['email']
+    
+    if form.validate_on_submit():
+        # Reset the user's password and update the database
+        new_password = form.new_password.data
+        hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
+        
+        # Update the user's password in the database
+        mongo.db.user.update_one({'email': email}, {'$set': {'pwd': hashed_password}})
+        
+        # Remove the password reset code from the database (optional)
+        mongo.db.user.update_one({'email': email}, {'$unset': {'password_reset_code': 1}})
+        
+        flash('Password reset successful. You can now log in with your new password.', 'success')
+        return redirect(url_for('login'))  # Redirect to the login page
+    
+    return render_template('reset_password.html', form=form, token=token, error=error)
+
+# @a.app.route("/ajaxdashboard", methods=['POST'])
 # def ajaxdashboard():
 #     # ############################
 #     # login() function displays the Login form (login.html) template
@@ -657,4 +725,4 @@ def hrx():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    a.app.run(debug=True)

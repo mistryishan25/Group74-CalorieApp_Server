@@ -91,8 +91,16 @@ class EnrollForm(FlaskForm):
     submit = SubmitField('Enroll')
 
 class ResetPasswordForm(FlaskForm):
-    password = PasswordField('Password', validators=[DataRequired()])
+    new_password = PasswordField('Password', validators=[DataRequired()])
     confirm_password = PasswordField(
         'Confirm Password', validators=[
-            DataRequired(), EqualTo('password')])
+            DataRequired(), EqualTo('new_password')])
     submit = SubmitField('Reset')
+
+class ForgotForm(FlaskForm):
+    email = StringField('Email',
+                        validators=[DataRequired(), Email()])
+
+
+
+
