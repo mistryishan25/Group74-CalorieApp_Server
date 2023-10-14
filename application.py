@@ -125,7 +125,6 @@ def calories():
     """
     now = datetime.now()
     now = now.strftime('%Y-%m-%d')
-
     get_session = session.get('email')
     if get_session is not None:
         form = CalorieForm()
@@ -138,7 +137,7 @@ def calories():
                 print(cals)
                 burn = request.form.get('burnout')
 
-                temp = mongo.db.calories.find_one({'email': email}, {
+                temp = mongo.db.calories.find_one({'email': email, 'date': now}, {
                     'email', 'calories', 'burnout'})
                 if temp is not None:
                     mongo.db.calories.update({'email': email}, {'$set': {
